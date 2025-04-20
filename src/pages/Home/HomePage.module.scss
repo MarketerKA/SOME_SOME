@@ -31,6 +31,67 @@
   }
 }
 
+// Стили для табов
+.tabsContainer {
+  margin-top: 10px;
+  
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    
+    .tabButton {
+      padding: 12px 24px;
+      background-color: #161b22;
+      border: none;
+      border-radius: 8px;
+      color: #a0a0a0;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background-color: #1c2128;
+        color: #e0e0e0;
+      }
+      
+      &.active {
+        background-color: #1c2128;
+        color: #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border-left: 3px solid #4caf50;
+      }
+    }
+  }
+  
+  .tabContent {
+    min-height: 300px;
+  }
+  
+  .heroesPageWrapper {
+    // Убираем лишние отступы, так как они уже есть в компоненте
+    h1 {
+      display: none; // Скрываем заголовок, так как он уже есть на странице
+    }
+    
+    // Настраиваем внешний вид таблицы героев
+    :global {
+      .heroesPage {
+        padding: 0;
+        
+        .container {
+          max-width: 100%;
+        }
+        
+        .header {
+          display: none; // Скрываем дублирующийся заголовок
+        }
+      }
+    }
+  }
+}
+
 .profileCard {
   background-color: #161b22;
   border-radius: 8px;
@@ -244,5 +305,16 @@
   
   .heroGrid {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  
+  .tabsContainer {
+    .tabs {
+      flex-direction: column;
+      
+      .tabButton {
+        width: 100%;
+        padding: 10px;
+      }
+    }
   }
 } 
