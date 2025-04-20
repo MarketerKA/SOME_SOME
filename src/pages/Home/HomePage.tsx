@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { UserProfile } from '../../components/UserProfile';
 import { MatchList } from '../../components/MatchList';
 import { StatsSelector } from '../../components/StatsSelector';
@@ -6,16 +6,21 @@ import { StatsDisplay } from '../../components/StatsDisplay';
 import { fetchUserProfile, fetchHeroStats, fetchAllHeroesStats, User, Match } from '../../api';
 import styles from './HomePage.module.scss';
 
+// Список допустимых значений rating_id - первое значение будет использовано по умолчанию
+const DEFAULT_RATING_ID = "11";
+// Тип статистики по умолчанию
+const DEFAULT_STATS_TYPE = "against";
+
 export const HomePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [statsResult, setStatsResult] = useState<string>('');
+  const [statsResult, setStatsResult] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState<boolean>(false);
   const [statsError, setStatsError] = useState<string | null>(null);
 
-  // Функция загрузки статистики
-  const loadStats = async (ratingId: string, heroId: string | null, statsType: string) => {
+  // Функция загрузки статистики - оптимизирована с useCallback
+  const loadStats = useCallback(async (ratingId: string, heroId: string | null, statsType: string) => {
     setStatsLoading(true);
     setStatsError(null);
     
@@ -31,20 +36,22 @@ export const HomePage: React.FC = () => {
         result = await fetchAllHeroesStats(ratingId, statsType);
       }
       
-      console.log('Получены данные статистики (частичные):', 
-                  typeof result === 'string' 
-                    ? result.substring(0, 100) 
-                    : JSON.stringify(result).substring(0, 100) + '...');
+      // Для отладки, показываем только часть данных в консоли
+      console.log('Получены данные статистики:', 
+                 typeof result === 'string' 
+                   ? 'Строка длиной ' + result.length
+                   : 'Объект с ' + Object.keys(result).length + ' ключами');
       
-      // Преобразуем результат в строку для отображения
-      setStatsResult(typeof result === 'string' ? result : JSON.stringify(result, null, 2));
-    } catch (err) {
+      // Сохраняем результат напрямую, без преобразования, компонент StatsDisplay 
+      // сам правильно обработает данные
+      setStatsResult(result);
+    } catch (err: any) {
       console.error('Ошибка при загрузке статистики:', err);
-      setStatsError('Не удалось загрузить статистику');
+      setStatsError(err.message || 'Не удалось загрузить статистику');
     } finally {
       setStatsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -63,7 +70,8 @@ export const HomePage: React.FC = () => {
         setUser(userData);
         
         // Загружаем статистику по умолчанию после загрузки профиля
-        await loadStats(userData.id_.toString(), null, 'against');
+        // Используем правильное значение rating_id из списка допустимых значений
+        await loadStats(DEFAULT_RATING_ID, null, DEFAULT_STATS_TYPE);
       } catch (err: any) {
         console.error('Ошибка при загрузке данных пользователя:', err);
         setError(`Не удалось загрузить данные пользователя: ${err.message || 'Неизвестная ошибка'}`);
@@ -73,13 +81,23 @@ export const HomePage: React.FC = () => {
     };
 
     loadUserData();
-  }, []);
+  }, [loadStats]);
 
-  const handleStatsSubmit = (ratingId: string, heroId: string | null, statsType: string) => {
+  // Функция обработки отправки формы статистики - оптимизирована с useCallback
+  const handleStatsSubmit = useCallback((ratingId: string, heroId: string | null, statsType: string) => {
     loadStats(ratingId, heroId, statsType);
-  };
+  }, [loadStats]);
 
-  console.log('Рендер компонента HomePage:', { user, loading, error });
+  // Мемоизируем компоненты, чтобы избежать ненужных перерисовок
+  const userProfileMemo = useMemo(() => {
+    if (!user) return null;
+    return <UserProfile user={user} />;
+  }, [user]);
+
+  const matchListMemo = useMemo(() => {
+    if (!user?.matches) return null;
+    return <MatchList matches={user.matches} />;
+  }, [user?.matches]);
 
   if (loading) {
     return (
@@ -116,7 +134,7 @@ export const HomePage: React.FC = () => {
       <div className={styles.container}>
         <h1 className={styles.title}>Dota 2 Статистика</h1>
         
-        <UserProfile user={user} />
+        {userProfileMemo}
         
         <div className={styles.statsSection}>
           <h2>Получить статистику героев</h2>
@@ -128,7 +146,7 @@ export const HomePage: React.FC = () => {
           />
         </div>
         
-        <MatchList matches={user.matches} />
+        {matchListMemo}
       </div>
     </div>
   );

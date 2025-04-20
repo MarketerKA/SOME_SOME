@@ -1,97 +1,62 @@
 .userProfile {
   display: flex;
-  gap: 20px;
+  align-items: center;
   padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+  background-color: #1c2128;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   
-  .avatarContainer {
-    flex-shrink: 0;
-    
-    .avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #4287f5;
-    }
-    
-    .noAvatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background-color: #e0e0e0;
-      border: 3px solid #4287f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #666;
-      font-size: 14px;
-      text-align: center;
-    }
+  .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-right: 20px;
+    object-fit: cover;
+    border: 3px solid #4287f5;
   }
   
-  .info {
-    flex-grow: 1;
+  .userInfo {
+    flex: 1;
     
-    .name {
-      font-size: 2rem;
-      margin: 0 0 16px 0;
-      color: #333;
+    .userName {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #e6e6e6;
     }
     
-    .details {
+    .userDetails {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
+      flex-wrap: wrap;
+      gap: 15px;
       
       .detail {
         display: flex;
-        gap: 10px;
+        align-items: center;
+        font-size: 0.9rem;
+        color: #b0b0b0;
         
         .label {
+          margin-right: 5px;
           font-weight: 500;
-          color: #666;
-          width: 80px;
+          color: #6c757d;
         }
         
         .value {
-          font-weight: 500;
-          color: #333;
-        }
-        
-        .steamLink {
-          color: #4287f5;
-          text-decoration: none;
-          
-          &:hover {
-            text-decoration: underline;
-          }
+          font-weight: 600;
         }
       }
     }
-  }
-  
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: center;
     
-    .avatarContainer {
-      margin-bottom: 10px;
-    }
-    
-    .info {
-      width: 100%;
-      text-align: center;
+    .userRank {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #b0b0b0;
       
-      .details {
-        align-items: center;
-        
-        .detail {
-          justify-content: center;
-        }
+      .rankValue {
+        font-weight: 600;
+        color: #4287f5;
       }
     }
   }

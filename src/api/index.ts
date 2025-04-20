@@ -1,4 +1,5 @@
 // Используем относительный URL для прокси через Vite
+// Vite перенаправит запросы с /api на http://localhost:8080
 const API_URL = '/api';
 
 // ID сессии для авторизации
@@ -62,11 +63,11 @@ export interface HeroesResponse {
 document.cookie = `session_id=${SESSION_ID}; path=/`;
 
 // Базовые настройки запросов к API
-const apiOptions = {
+const apiOptions: RequestInit = {
   headers: {
     'accept': 'application/json'
   },
-  credentials: 'include' // Включаем передачу cookies (будет работать через прокси)
+  credentials: 'include' as RequestCredentials
 };
 
 // Получение пользовательских данных
@@ -131,19 +132,26 @@ export const fetchHeroStats = async (
   ratingId: string,
   heroId: string,
   statsType: string
-): Promise<string> => {
-  console.log('API Call: получение статистики героя', { ratingId, heroId, statsType });
+): Promise<any> => {
+  // Используем формат как в Swagger, с дополнительным слешем
+  const url = `${API_URL}/stats/${heroId}/?rating_id=${ratingId}&types=${statsType}`;
+  console.log(`API Call: получение статистики героя, URL: ${url}`);
+  
   try {
-    const response = await fetch(
-      `${API_URL}/stats/${heroId}?rating_id=${ratingId}&types=${statsType}`,
-      apiOptions
-    );
+    const response = await fetch(url, apiOptions);
+    
+    console.log(`API Response Status для статистики героя: ${response.status} ${response.statusText}`);
     
     if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Не удалось получить текст ошибки');
+      console.error(`API Error ${response.status}: ${errorText}`);
       throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
     }
     
-    return response.json();
+    const data = await response.json();
+    console.log('Получен ответ API для героя, первые 100 символов:', 
+                typeof data === 'string' ? data.substring(0, 100) : JSON.stringify(data).substring(0, 100) + '...');
+    return data;
   } catch (error) {
     console.error('API Error при получении статистики героя:', error);
     throw error;
@@ -154,19 +162,26 @@ export const fetchHeroStats = async (
 export const fetchAllHeroesStats = async (
   ratingId: string,
   statsType: string
-): Promise<string> => {
-  console.log('API Call: получение статистики всех героев', { ratingId, statsType });
+): Promise<any> => {
+  // Используем точно такой же формат URL, как в примере Swagger
+  const url = `${API_URL}/stats/?rating_id=${ratingId}&types=${statsType}`;
+  console.log(`API Call: получение статистики всех героев, URL: ${url}`);
+  
   try {
-    const response = await fetch(
-      `${API_URL}/stats?rating_id=${ratingId}&types=${statsType}`,
-      apiOptions
-    );
+    const response = await fetch(url, apiOptions);
+    
+    console.log(`API Response Status для статистики: ${response.status} ${response.statusText}`);
     
     if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Не удалось получить текст ошибки');
+      console.error(`API Error ${response.status}: ${errorText}`);
       throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
     }
     
-    return response.json();
+    const data = await response.json();
+    console.log('Получен ответ API, первые 100 символов:', 
+                typeof data === 'string' ? data.substring(0, 100) : JSON.stringify(data).substring(0, 100) + '...');
+    return data;
   } catch (error) {
     console.error('API Error при получении статистики всех героев:', error);
     throw error;
