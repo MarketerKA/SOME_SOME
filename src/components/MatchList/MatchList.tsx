@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './MatchList.module.scss';
-import { Match } from '../../api';
+import { Match } from '../../types';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import cx from 'classnames';
-import { getHeroIconByIdDirect, getFallbackHeroIcon } from '../../utils/heroImages';
+import { getHeroIconUrl, getFallbackHeroIcon } from '../../utils/heroImages';
 import { getHeroColor as getHeroColorFromUtils } from '../../utils/createDefaultImages';
 
 // Массив цветов для индикаторов героев
@@ -50,9 +50,40 @@ export interface MatchListProps {
   error?: string | null;
 }
 
+// Тип для героя из JSON
+interface HeroData {
+  id: number;
+  name: string;
+  icon: string;
+  img: string;
+  localized_name: string;
+  primary_attr: string;
+}
+
 export const MatchList: React.FC<MatchListProps> = ({ matches, loading, error }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [heroesData, setHeroesData] = useState<Record<number, HeroData>>({});
+  const [heroesLoaded, setHeroesLoaded] = useState(false);
   const matchesPerPage = 10;
+  
+  // Загрузка данных о героях из JSON
+  useEffect(() => {
+    const loadHeroesData = async () => {
+      try {
+        const response = await fetch('/heroes.json');
+        if (!response.ok) {
+          throw new Error(`Ошибка загрузки данных о героях: ${response.status}`);
+        }
+        const heroesJson = await response.json();
+        setHeroesData(heroesJson);
+        setHeroesLoaded(true);
+      } catch (err) {
+        console.error('Ошибка при загрузке данных о героях:', err);
+      }
+    };
+    
+    loadHeroesData();
+  }, []);
   
   if (loading) {
     return (
@@ -95,6 +126,23 @@ export const MatchList: React.FC<MatchListProps> = ({ matches, loading, error })
     setCurrentPage(newPage);
   };
   
+  // Получение данных о герое по ID
+  const getHeroData = (heroId: number) => {
+    return heroesData[heroId];
+  };
+  
+  // Получение URL иконки героя
+  const getHeroIconUrlById = (heroId: number) => {
+    const heroData = getHeroData(heroId);
+    
+    if (heroData && heroData.icon) {
+      return getHeroIconUrl(heroData.icon);
+    }
+    
+    // Если данные о герое не найдены, используем запасной вариант
+    return getFallbackHeroIcon();
+  };
+  
   return (
     <div className={styles.matchList}>
       <div className={styles.title}>
@@ -111,6 +159,7 @@ export const MatchList: React.FC<MatchListProps> = ({ matches, loading, error })
           
           // Получение цвета для героя
           const heroColor = getHeroColor(match.hero_id);
+          const heroData = getHeroData(match.hero_id);
           
           return (
             <div 
@@ -119,13 +168,11 @@ export const MatchList: React.FC<MatchListProps> = ({ matches, loading, error })
             >
               <div className={styles.heroIndicator}>
                 <img 
-                  src={getHeroIconByIdDirect(match.hero_id)} 
-                  alt={`Герой ${match.hero_id}`}
+                  src={getHeroIconUrlById(match.hero_id)} 
+                  alt={heroData ? heroData.localized_name : `Герой ${match.hero_id}`}
+                  className={styles.heroIcon}
                   onError={(e) => {
-                    // Если изображение не загрузилось, используем цветной индикатор
-                    (e.target as HTMLImageElement).style.display = 'none';
-                    (e.target as HTMLImageElement).parentElement!.style.backgroundColor = heroColor;
-                    (e.target as HTMLImageElement).parentElement!.textContent = String(match.hero_id);
+                    (e.target as HTMLImageElement).src = getFallbackHeroIcon();
                   }}
                 />
               </div>
