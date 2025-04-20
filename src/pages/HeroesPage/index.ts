@@ -1,0 +1,1 @@
+export { HeroesPage } from './HeroesPage'; 

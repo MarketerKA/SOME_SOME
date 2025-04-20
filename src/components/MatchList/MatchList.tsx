@@ -4,26 +4,26 @@ import { Match } from '../../api';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import cx from 'classnames';
+import { getHeroIconByIdDirect, getFallbackHeroIcon } from '../../utils/heroImages';
+import { getHeroColor as getHeroColorFromUtils } from '../../utils/createDefaultImages';
 
-const HERO_COLORS = [
-  '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6',
-  '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad',
-  '#27ae60', '#2980b9', '#f1c40f', '#e67e22', '#95a5a6',
-  '#d35400', '#e84393', '#6c5ce7', '#00cec9', '#00b894',
-  '#fdcb6e', '#fd79a8', '#55efc4', '#81ecec', '#74b9ff'
+// Массив цветов для индикаторов героев
+const colors = [
+  '#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE',
+  '#448AFF', '#40C4FF', '#18FFFF', '#64FFDA', '#69F0AE',
+  '#B2FF59', '#EEFF41', '#FFFF00', '#FFD740', '#FFAB40',
+  '#FF6E40', '#8D6E63', '#78909C'
 ];
 
-// Функция получения цвета на основе ID героя
-const getHeroColor = (heroId: number) => {
-  const index = heroId % HERO_COLORS.length;
-  return HERO_COLORS[index];
-};
+// Функция получения цвета для героя
+const getHeroColor = getHeroColorFromUtils;
 
-interface MatchListProps {
-  matches: Match[];
-  loading?: boolean;
-  error?: string;
-}
+// Функция форматирования длительности матча
+const formatDuration = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+};
 
 // Получение аббревиатуры режима игры
 const getGameModeAbbreviation = (gameMode: number | string) => {
@@ -44,12 +44,11 @@ const getGameModeAbbreviation = (gameMode: number | string) => {
   return gameModeMap[mode] || `Режим ${mode}`;
 };
 
-// Форматирование длительности матча
-const formatDuration = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-};
+export interface MatchListProps {
+  matches?: Match[];
+  loading?: boolean;
+  error?: string | null;
+}
 
 export const MatchList: React.FC<MatchListProps> = ({ matches, loading, error }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,8 +117,17 @@ export const MatchList: React.FC<MatchListProps> = ({ matches, loading, error })
               key={match.id} 
               className={cx(styles.match, isWin ? styles.win : styles.loss)}
             >
-              <div className={styles.heroIndicator} style={{ backgroundColor: heroColor }}>
-                {match.hero_id}
+              <div className={styles.heroIndicator}>
+                <img 
+                  src={getHeroIconByIdDirect(match.hero_id)} 
+                  alt={`Герой ${match.hero_id}`}
+                  onError={(e) => {
+                    // Если изображение не загрузилось, используем цветной индикатор
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).parentElement!.style.backgroundColor = heroColor;
+                    (e.target as HTMLImageElement).parentElement!.textContent = String(match.hero_id);
+                  }}
+                />
               </div>
               <div className={styles.matchDetails}>
                 <div className={cx(styles.matchResult, isWin ? styles.win : styles.loss)}>

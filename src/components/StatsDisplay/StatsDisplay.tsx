@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from './StatsDisplay.module.scss';
+import { getHeroIconUrl, getFallbackHeroIcon } from '../../utils/heroImages';
 
 interface StatsDisplayProps {
   stats: any; // Используем any для обработки разных форматов данных
@@ -105,9 +106,12 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ stats, loading, erro
                     {/* Иконка героя, если доступна */}
                     {item.icon && (
                       <img 
-                        src={item.icon} 
+                        src={getHeroIconUrl(item.icon)} 
                         alt={getHeroName(item)} 
                         className={styles.heroIcon} 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = getFallbackHeroIcon();
+                        }}
                       />
                     )}
                     <span className={styles.heroName}>{getHeroName(item)}</span>
