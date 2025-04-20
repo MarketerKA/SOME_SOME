@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getHeroIconUrl, getFallbackHeroIcon } from '../../utils/heroImages';
 import { fetchHeroes, fetchAllHeroesStats, StatsType } from '../../api';
+import { HeroDetail } from '../HeroDetail';
 import styles from './HeroesTable.module.scss';
 
 interface Hero {
@@ -69,6 +70,7 @@ export const HeroesTable: React.FC = () => {
     key: 'win_rate',
     direction: 'descending'
   });
+  const [selectedHero, setSelectedHero] = useState<EnhancedHero | null>(null);
 
   // Функция загрузки героев и их статистики
   const loadHeroesWithStats = useCallback(async () => {
@@ -191,6 +193,16 @@ export const HeroesTable: React.FC = () => {
       : <span className={styles.sortIcon}>↓</span>;
   };
 
+  // Обработчик клика по герою
+  const handleHeroClick = (hero: EnhancedHero) => {
+    setSelectedHero(hero);
+  };
+
+  // Закрытие модального окна
+  const handleCloseModal = () => {
+    setSelectedHero(null);
+  };
+
   // Рендер загрузки
   if (loading) {
     return (
@@ -222,7 +234,7 @@ export const HeroesTable: React.FC = () => {
             <li><strong>XPM</strong> - опыт в минуту</li>
             <li><strong>GPM</strong> - золото в минуту</li>
           </ul>
-          <p>Нажмите на заголовок столбца для сортировки</p>
+          <p>Нажмите на заголовок столбца для сортировки или на героя для просмотра детальной статистики</p>
         </div>
       </div>
       
@@ -249,6 +261,7 @@ export const HeroesTable: React.FC = () => {
               <tr 
                 key={hero.id} 
                 className={styles.heroRow}
+                onClick={() => handleHeroClick(hero)}
               >
                 <td className={styles.heroCell}>
                   <div className={styles.heroInfo}>
@@ -293,6 +306,14 @@ export const HeroesTable: React.FC = () => {
           </tbody>
         </table>
       </div>
+      
+      {selectedHero && (
+        <HeroDetail 
+          heroId={selectedHero.id}
+          heroData={selectedHero}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }; 
