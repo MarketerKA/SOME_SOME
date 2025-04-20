@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-card {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        h2 {
+            margin-top: 0;
+        }
+        button {
+            padding: 8px 12px;
+            background: #4287f5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #3276e6;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 300px;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тестирование API</h1>
+    
+    <div class="test-card">
+        <h2>GET /me с параметром session_id</h2>
+        <button onclick="testMeWithParam()">Тест GET /me?session_id=318334842</button>
+        <div id="result-me-param"></div>
+    </div>
+    
+    <div class="test-card">
+        <h2>GET /me с cookie session_id</h2>
+        <button onclick="testMeWithCookie()">Тест GET /me с cookie</button>
+        <div id="result-me-cookie"></div>
+    </div>
+    
+    <div class="test-card">
+        <h2>GET /me/matches с параметром session_id</h2>
+        <button onclick="testMatchesWithParam()">Тест GET /me/matches?session_id=318334842</button>
+        <div id="result-matches-param"></div>
+    </div>
+
+    <script>
+        // URL API
+        const API_URL = 'http://localhost:8080';
+        const SESSION_ID = '318334842';
+
+        // Функция для отображения результата
+        function displayResult(elementId, data, isError = false) {
+            const resultElement = document.getElementById(elementId);
+            
+            // Очищаем предыдущий результат
+            resultElement.innerHTML = '';
+            
+            // Элемент для статуса
+            const statusElement = document.createElement('p');
+            statusElement.className = isError ? 'error' : 'success';
+            statusElement.textContent = isError 
+                ? `Ошибка: ${data.message || 'Неизвестная ошибка'}` 
+                : 'Успешно!';
+            resultElement.appendChild(statusElement);
+            
+            // Выводим ответ
+            const preElement = document.createElement('pre');
+            preElement.textContent = typeof data === 'string' 
+                ? data 
+                : JSON.stringify(data, null, 2);
+            resultElement.appendChild(preElement);
+        }
+
+        // Тест /me с параметром session_id
+        async function testMeWithParam() {
+            try {
+                const resultElement = document.getElementById('result-me-param');
+                resultElement.innerHTML = '<p>Загрузка...</p>';
+                
+                const response = await fetch(`${API_URL}/me?session_id=${SESSION_ID}`, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'application/json'
+                    },
+                    credentials: 'omit' // Отключаем передачу cookies
+                });
+                
+                const statusInfo = document.createElement('p');
+                statusInfo.textContent = `Статус: ${response.status} ${response.statusText}`;
+                resultElement.appendChild(statusInfo);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Статус ${response.status}: ${errorData.detail || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayResult('result-me-param', data);
+            } catch (error) {
+                console.error('Error testing /me with param:', error);
+                displayResult('result-me-param', error, true);
+            }
+        }
+
+        // Тест /me с cookie session_id
+        async function testMeWithCookie() {
+            try {
+                const resultElement = document.getElementById('result-me-cookie');
+                resultElement.innerHTML = '<p>Загрузка...</p>';
+                
+                // Устанавливаем cookie
+                document.cookie = `session_id=${SESSION_ID}; path=/`;
+                
+                const response = await fetch(`${API_URL}/me`, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'application/json'
+                    },
+                    credentials: 'include' // Включаем передачу cookies
+                });
+                
+                const statusInfo = document.createElement('p');
+                statusInfo.textContent = `Статус: ${response.status} ${response.statusText}`;
+                resultElement.appendChild(statusInfo);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Статус ${response.status}: ${errorData.detail || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                displayResult('result-me-cookie', data);
+            } catch (error) {
+                console.error('Error testing /me with cookie:', error);
+                displayResult('result-me-cookie', error, true);
+            }
+        }
+
+        // Тест /me/matches с параметром session_id
+        async function testMatchesWithParam() {
+            try {
+                const resultElement = document.getElementById('result-matches-param');
+                resultElement.innerHTML = '<p>Загрузка...</p>';
+                
+                const response = await fetch(`${API_URL}/me/matches?session_id=${SESSION_ID}`, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'application/json'
+                    },
+                    credentials: 'omit' // Отключаем передачу cookies
+                });
+                
+                const statusInfo = document.createElement('p');
+                statusInfo.textContent = `Статус: ${response.status} ${response.statusText}`;
+                resultElement.appendChild(statusInfo);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Статус ${response.status}: ${errorData.detail || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                // Показываем только первые 3 матча для компактности
+                const limitedData = data.slice(0, 3);
+                limitedData.push({ note: `...и еще ${data.length - 3} матчей (всего ${data.length})` });
+                
+                displayResult('result-matches-param', limitedData);
+            } catch (error) {
+                console.error('Error testing /me/matches with param:', error);
+                displayResult('result-matches-param', error, true);
+            }
+        }
+    </script>
+</body>
+</html> 
