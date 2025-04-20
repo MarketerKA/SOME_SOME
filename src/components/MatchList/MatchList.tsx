@@ -1,146 +1,167 @@
 import React, { useState } from 'react';
-import { Match } from '../../api';
 import styles from './MatchList.module.scss';
+import { Match } from '../../api';
+import { formatDistanceToNow } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import cx from 'classnames';
+
+const HERO_COLORS = [
+  '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6',
+  '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad',
+  '#27ae60', '#2980b9', '#f1c40f', '#e67e22', '#95a5a6',
+  '#d35400', '#e84393', '#6c5ce7', '#00cec9', '#00b894',
+  '#fdcb6e', '#fd79a8', '#55efc4', '#81ecec', '#74b9ff'
+];
+
+// Функция получения цвета на основе ID героя
+const getHeroColor = (heroId: number) => {
+  const index = heroId % HERO_COLORS.length;
+  return HERO_COLORS[index];
+};
 
 interface MatchListProps {
   matches: Match[];
+  loading?: boolean;
+  error?: string;
 }
 
-export const MatchList: React.FC<MatchListProps> = ({ matches }) => {
-  // Состояние для пагинации
+// Получение аббревиатуры режима игры
+const getGameModeAbbreviation = (gameMode: number | string) => {
+  // Преобразуем gameMode в строку для работы с записями
+  const mode = String(gameMode);
+  const gameModeMap: Record<string, string> = {
+    '0': 'UNK',
+    '1': 'AP',
+    '2': 'CM',
+    '3': 'RD',
+    '4': 'SD',
+    '5': 'AR',
+    '22': 'TURBO',
+    '16': 'CD',
+    '18': 'AD'
+  };
+  
+  return gameModeMap[mode] || `Режим ${mode}`;
+};
+
+// Форматирование длительности матча
+const formatDuration = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+};
+
+export const MatchList: React.FC<MatchListProps> = ({ matches, loading, error }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const matchesPerPage = 10;
   
-  // Расчет общего количества страниц
-  const totalPages = Math.ceil((matches?.length || 0) / matchesPerPage);
+  if (loading) {
+    return (
+      <div className={styles.matchList}>
+        <div className={styles.title}>Загрузка матчей...</div>
+      </div>
+    );
+  }
   
-  // Получение текущих матчей для отображения
-  const getCurrentMatches = () => {
-    const startIndex = (currentPage - 1) * matchesPerPage;
-    const endIndex = startIndex + matchesPerPage;
-    return matches?.slice(startIndex, endIndex) || [];
-  };
+  if (error) {
+    return (
+      <div className={styles.matchList}>
+        <div className={styles.title}>Ошибка</div>
+        <div className={styles.empty}>{error}</div>
+      </div>
+    );
+  }
   
-  // Функция для переключения страниц
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  // Функция форматирования времени
-  const formatTime = (timestamp: number) => {
-    if (!timestamp) return 'Неизвестно';
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Функция форматирования длительности матча
-  const formatDuration = (seconds: number) => {
-    if (!seconds) return '00:00';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  // Функция получения URL для иконки героя
-  const getHeroIconUrl = (heroId: number) => {
-    // Здесь можно было бы подключить настоящие изображения героев
-    return `https://api.opendota.com/apps/dota2/images/dota_react/heroes/icons/${heroId}.png?`;
-  };
-
   if (!matches || matches.length === 0) {
     return (
       <div className={styles.matchList}>
         <div className={styles.title}>Последние матчи</div>
-        <div className={styles.empty}>
-          Нет данных о матчах
-        </div>
+        <div className={styles.empty}>Матчи не найдены</div>
       </div>
     );
   }
-
-  // Получаем текущие матчи для отображения
-  const currentMatches = getCurrentMatches();
-
+  
+  // Общее количество страниц
+  const totalPages = Math.ceil(matches.length / matchesPerPage);
+  
+  // Получение матчей для текущей страницы
+  const getCurrentMatches = () => {
+    const startIndex = (currentPage - 1) * matchesPerPage;
+    const endIndex = startIndex + matchesPerPage;
+    return matches.slice(startIndex, endIndex);
+  };
+  
+  // Обработчик изменения страницы
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+  
   return (
     <div className={styles.matchList}>
       <div className={styles.title}>
-        Последние матчи 
-        <span className={styles.matchCount}>
-          ({matches.length} всего)
-        </span>
+        Последние матчи
+        <span className={styles.matchCount}>{matches.length}</span>
       </div>
-      
       <div className={styles.matchesContainer}>
-        {currentMatches.map((match) => (
-          <div 
-            key={match.id} 
-            className={`${styles.match} ${match.win ? styles.win : styles.loss}`}
-          >
-            <img 
-              src={getHeroIconUrl(match.hero_id)} 
-              alt={`Герой ${match.hero_id}`} 
-              className={styles.heroIcon}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48?text=Hero';
-              }}
-            />
-            
-            <div className={styles.matchDetails}>
-              <div className={`${styles.matchResult} ${match.win ? styles.win : styles.loss}`}>
-                {match.win ? 'Победа' : 'Поражение'}
+        {getCurrentMatches().map((match) => {
+          const isWin = match.win;
+          const timeAgo = formatDistanceToNow(new Date(match.time * 1000), { 
+            addSuffix: true,
+            locale: ru
+          });
+          
+          // Получение цвета для героя
+          const heroColor = getHeroColor(match.hero_id);
+          
+          return (
+            <div 
+              key={match.id} 
+              className={cx(styles.match, isWin ? styles.win : styles.loss)}
+            >
+              <div className={styles.heroIndicator} style={{ backgroundColor: heroColor }}>
+                {match.hero_id}
               </div>
-              
-              <div className={styles.matchInfo}>
-                <div className={styles.stat}>
-                  <span className={styles.label}>KDA:</span>
-                  <span className={styles.value}>{match.kills}/{match.deaths}/{match.assists}</span>
+              <div className={styles.matchDetails}>
+                <div className={cx(styles.matchResult, isWin ? styles.win : styles.loss)}>
+                  {isWin ? 'Победа' : 'Поражение'}
                 </div>
-                
-                <div className={styles.stat}>
-                  <span className={styles.label}>Длительность:</span>
-                  <span className={styles.value}>{formatDuration(match.duration)}</span>
-                </div>
-                
-                <div className={styles.stat}>
-                  <span className={styles.label}>Режим:</span>
-                  <span className={styles.value}>{match.game_mode}</span>
+                <div className={styles.matchInfo}>
+                  <div className={styles.stat}>
+                    <span className={styles.label}>KDA:</span>
+                    <span className={styles.value}>{match.kills}/{match.deaths}/{match.assists}</span>
+                  </div>
+                  <div className={styles.stat}>
+                    <span className={styles.label}>Длительность:</span>
+                    <span className={styles.value}>{formatDuration(match.duration)}</span>
+                  </div>
+                  <div className={styles.stat}>
+                    <span className={styles.label}>Режим:</span>
+                    <span className={styles.value}>{getGameModeAbbreviation(match.game_mode)}</span>
+                  </div>
                 </div>
               </div>
+              <div className={styles.matchTime}>{timeAgo}</div>
             </div>
-            
-            <div className={styles.matchTime}>
-              {formatTime(match.time)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       
       {/* Пагинация */}
       {totalPages > 1 && (
         <div className={styles.pagination}>
           <button 
-            className={`${styles.pageButton} ${currentPage === 1 ? styles.disabled : ''}`}
-            onClick={() => handlePageChange(currentPage - 1)}
+            className={cx(styles.pageButton, { [styles.disabled]: currentPage === 1 })}
+            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
             &lt;
           </button>
-          
           <div className={styles.pageInfo}>
             {currentPage} из {totalPages}
           </div>
-          
           <button 
-            className={`${styles.pageButton} ${currentPage === totalPages ? styles.disabled : ''}`}
-            onClick={() => handlePageChange(currentPage + 1)}
+            className={cx(styles.pageButton, { [styles.disabled]: currentPage === totalPages })}
+            onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
             &gt;
