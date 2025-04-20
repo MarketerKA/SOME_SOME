@@ -68,9 +68,18 @@
     </div>
 
     <script>
-        // URL API
-        const API_URL = 'http://localhost:8080';
-        const SESSION_ID = '318334842';
+        // Константы
+        const API_CONFIG = {
+            BASE_URL: 'http://localhost:8080',
+            SESSION_ID: '318334842'
+        };
+        
+        // Настройки API запросов
+        const API_OPTIONS = {
+            headers: {
+                'accept': 'application/json'
+            }
+        };
 
         // Функция для отображения результата
         function displayResult(elementId, data, isError = false) {
@@ -101,11 +110,9 @@
                 const resultElement = document.getElementById('result-me-param');
                 resultElement.innerHTML = '<p>Загрузка...</p>';
                 
-                const response = await fetch(`${API_URL}/me?session_id=${SESSION_ID}`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/me?session_id=${API_CONFIG.SESSION_ID}`, {
                     method: 'GET',
-                    headers: {
-                        'accept': 'application/json'
-                    },
+                    ...API_OPTIONS,
                     credentials: 'omit' // Отключаем передачу cookies
                 });
                 
@@ -133,13 +140,11 @@
                 resultElement.innerHTML = '<p>Загрузка...</p>';
                 
                 // Устанавливаем cookie
-                document.cookie = `session_id=${SESSION_ID}; path=/`;
+                document.cookie = `session_id=${API_CONFIG.SESSION_ID}; path=/`;
                 
-                const response = await fetch(`${API_URL}/me`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/me`, {
                     method: 'GET',
-                    headers: {
-                        'accept': 'application/json'
-                    },
+                    ...API_OPTIONS,
                     credentials: 'include' // Включаем передачу cookies
                 });
                 
@@ -166,11 +171,9 @@
                 const resultElement = document.getElementById('result-matches-param');
                 resultElement.innerHTML = '<p>Загрузка...</p>';
                 
-                const response = await fetch(`${API_URL}/me/matches?session_id=${SESSION_ID}`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/me/matches?session_id=${API_CONFIG.SESSION_ID}`, {
                     method: 'GET',
-                    headers: {
-                        'accept': 'application/json'
-                    },
+                    ...API_OPTIONS,
                     credentials: 'omit' // Отключаем передачу cookies
                 });
                 

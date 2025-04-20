@@ -4,6 +4,7 @@ import { HomePage } from './pages/Home';
 import { HeroesPage } from './pages/HeroesPage';
 import { HeroPage } from './pages/HeroPage';
 import { Navbar } from './components/Navbar';
+import { ROUTES } from './utils/constants';
 import './App.css';
 
 function App() {
@@ -12,10 +13,10 @@ function App() {
       <div className="App">
         <Navbar />
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/heroes" element={<HeroesPage />} />
-          <Route path="/heroes/:heroId" element={<HeroPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path={ROUTES.HOME} element={<HomePage />} />
+          <Route path={ROUTES.HEROES} element={<HeroesPage />} />
+          <Route path={ROUTES.HERO_DETAILS} element={<HeroPage />} />
+          <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
         </Routes>
       </div>
     </Router>

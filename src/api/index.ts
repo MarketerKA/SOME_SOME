@@ -1,80 +1,20 @@
-// Используем относительный URL для прокси через Vite
-// Vite перенаправит запросы с /api на http://localhost:8080
-const API_URL = '/api';
-
-// ID сессии для авторизации
-const SESSION_ID = '318334842';
-
-export interface Match {
-  id: number;
-  win: boolean;
-  duration: number;
-  game_mode: number;
-  hero_id: number;
-  time: number;
-  kills: number;
-  deaths: number;
-  assists: number;
-}
-
-export interface User {
-  id_: number;
-  name: string;
-  avatar: string;
-  steam: string;
-  rank: number;
-  matches: Match[];
-}
-
-export interface Hero {
-  id: number;
-  name: string;
-  primary_attr: string;
-  attack_type: string;
-  roles: string[];
-  img: string;
-  icon: string;
-  base_health: number;
-  base_health_regen: number;
-  base_mana: number;
-  base_mana_regen: number;
-  base_armor: number;
-  base_mr: number;
-  base_attack_min: number;
-  base_attack_max: number;
-  base_str: number;
-  base_agi: number;
-  base_int: number;
-  str_gain: number;
-  agi_gain: number;
-  int_gain: number;
-  attack_range: number;
-  projectile_speed: number;
-  attack_rate: number;
-  base_attack_time: number;
-  attack_point: number;
-}
-
-export interface HeroesResponse {
-  heroes: Hero[];
-}
+import { API, API_OPTIONS, STATS_TYPE, RATING_VALUES, DEFAULT_RATING_ID } from '../utils/constants';
+import { User, Match, Hero, HeroesResponse, HeroStats } from '../types';
 
 // Устанавливаем cookie вручную, так как это наиболее надежный способ (работает через прокси)
-document.cookie = `session_id=${SESSION_ID}; path=/`;
+document.cookie = `session_id=${API.SESSION_ID}; path=/`;
 
-// Базовые настройки запросов к API
-const apiOptions: RequestInit = {
-  headers: {
-    'accept': 'application/json'
-  },
-  credentials: 'include' as RequestCredentials
-};
+// Экспортируем типы статистики для использования в компонентах
+export { STATS_TYPE as StatsType };
+
+// Экспортируем рейтинги для использования в компонентах
+export { RATING_VALUES };
 
 // Получение пользовательских данных
 export const fetchUserProfile = async (): Promise<User> => {
   console.log('API Call: получение данных пользователя');
   try {
-    const response = await fetch(`${API_URL}/me`, apiOptions);
+    const response = await fetch(`${API.BASE_URL}/me`, API_OPTIONS);
     
     console.log('API Response Status:', response.status, response.statusText);
     
@@ -95,7 +35,7 @@ export const fetchUserProfile = async (): Promise<User> => {
 export const fetchMatches = async (): Promise<Match[]> => {
   console.log('API Call: получение матчей');
   try {
-    const response = await fetch(`${API_URL}/me/matches`, apiOptions);
+    const response = await fetch(`${API.BASE_URL}/me/matches`, API_OPTIONS);
     
     if (!response.ok) {
       throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
@@ -114,7 +54,7 @@ export const fetchMatches = async (): Promise<Match[]> => {
 export const fetchHeroes = async (): Promise<HeroesResponse> => {
   console.log('API Call: получение списка героев');
   try {
-    const response = await fetch(`${API_URL}/heroes`, apiOptions);
+    const response = await fetch(`${API.BASE_URL}/heroes`, API_OPTIONS);
     
     if (!response.ok) {
       throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
@@ -129,16 +69,16 @@ export const fetchHeroes = async (): Promise<HeroesResponse> => {
 
 // Получение статистики конкретного героя
 export const fetchHeroStats = async (
-  ratingId: string,
+  ratingId: string = DEFAULT_RATING_ID,
   heroId: string,
-  statsType: string
-): Promise<any> => {
+  statsType: string | STATS_TYPE = STATS_TYPE.Raw
+): Promise<HeroStats> => {
   // Используем формат как в Swagger, с дополнительным слешем
-  const url = `${API_URL}/stats/${heroId}/?rating_id=${ratingId}&types=${statsType}`;
+  const url = `${API.BASE_URL}/stats/${heroId}/?rating_id=${ratingId}&types=${statsType}`;
   console.log(`API Call: получение статистики героя, URL: ${url}`);
   
   try {
-    const response = await fetch(url, apiOptions);
+    const response = await fetch(url, API_OPTIONS);
     
     console.log(`API Response Status для статистики героя: ${response.status} ${response.statusText}`);
     
@@ -160,15 +100,15 @@ export const fetchHeroStats = async (
 
 // Получение статистики всех героев
 export const fetchAllHeroesStats = async (
-  ratingId: string,
-  statsType: string
-): Promise<any> => {
+  ratingId: string = DEFAULT_RATING_ID,
+  statsType: string | STATS_TYPE = STATS_TYPE.Raw
+): Promise<HeroStats[]> => {
   // Используем точно такой же формат URL, как в примере Swagger
-  const url = `${API_URL}/stats/?rating_id=${ratingId}&types=${statsType}`;
+  const url = `${API.BASE_URL}/stats/?rating_id=${ratingId}&types=${statsType}`;
   console.log(`API Call: получение статистики всех героев, URL: ${url}`);
   
   try {
-    const response = await fetch(url, apiOptions);
+    const response = await fetch(url, API_OPTIONS);
     
     console.log(`API Response Status для статистики: ${response.status} ${response.statusText}`);
     

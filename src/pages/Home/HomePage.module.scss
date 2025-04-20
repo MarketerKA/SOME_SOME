@@ -1,65 +1,248 @@
 .homePage {
   min-height: 100vh;
-  padding: 40px 20px;
-  background-color: #101319;
-  color: #e0e0e0;
+  background-color: #0d1117;
+  padding: 20px;
   
   .container {
     max-width: 1200px;
     margin: 0 auto;
   }
   
-  .title {
-    font-size: 2rem;
+  .header {
     text-align: center;
     margin-bottom: 30px;
-    color: #fff;
-  }
-  
-  .loader, .error {
-    padding: 40px;
-    text-align: center;
-    margin: 20px;
-    background-color: #1c2128;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .error {
-    background-color: #2a1a1a;
     
-    button {
-      margin-top: 15px;
-      padding: 8px 16px;
-      background-color: #d32f2f;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 500;
+    h1 {
+      font-size: 2.2rem;
+      color: #e0e0e0;
+      margin-bottom: 10px;
+    }
+    
+    p {
+      color: #a0a0a0;
+      font-size: 1.1rem;
+    }
+  }
+  
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+}
+
+.profileCard {
+  background-color: #161b22;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  
+  .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #30363d;
+  }
+  
+  .userInfo {
+    flex-grow: 1;
+    
+    .userName {
+      font-size: 1.5rem;
+      color: #e0e0e0;
+      margin-bottom: 5px;
+    }
+    
+    .userDetails {
+      color: #8b949e;
+      font-size: 0.9rem;
       
-      &:hover {
-        background-color: #b71c1c;
+      span {
+        margin-right: 15px;
+        
+        .label {
+          color: #6e7681;
+          margin-right: 5px;
+        }
+        
+        .value {
+          color: #a0a0a0;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+.statsSection {
+  margin-top: 30px;
+  
+  .statsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+    
+    h2 {
+      font-size: 1.5rem;
+      color: #e0e0e0;
+      margin: 0;
+    }
+  }
+}
+
+.combinedStatsSection {
+  background-color: #161b22;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  h2 {
+    font-size: 1.5rem;
+    color: #e0e0e0;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .statsDescription {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(55, 65, 81, 0.3);
+    border-radius: 6px;
+    
+    p {
+      color: #a0a0a0;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      
+      li {
+        color: #a0a0a0;
+        margin-bottom: 5px;
+        
+        strong {
+          color: #e0e0e0;
+        }
       }
     }
   }
   
-  .statsSection {
-    margin: 30px 0;
+  .loading, .error {
+    text-align: center;
+    padding: 30px;
+    color: #a0a0a0;
+  }
+  
+  .error {
+    color: #f87171;
+  }
+}
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.heroCard {
+  background-color: #1c2128;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .heroHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background-color: #161b22;
     
-    h2 {
-      font-size: 1.6rem;
-      margin-bottom: 20px;
-      color: #fff;
-      text-align: center;
+    .heroIcon {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+    
+    h3 {
+      font-size: 1.1rem;
+      color: #e0e0e0;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
   
-  @media (max-width: 768px) {
-    padding: 20px 10px;
+  .heroStats {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     
-    .title {
-      font-size: 2rem;
+    .statGroup {
+      h4 {
+        font-size: 0.9rem;
+        color: #4287f5;
+        margin: 0 0 8px 0;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #2a303a;
+      }
+      
+      .statItem {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        
+        .statLabel {
+          color: #8b949e;
+          font-size: 0.85rem;
+        }
+        
+        .statValue {
+          color: #e0e0e0;
+          font-weight: 500;
+          font-size: 0.85rem;
+        }
+      }
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .profileCard {
+    flex-direction: column;
+    text-align: center;
+    
+    .userInfo .userDetails span {
+      display: block;
+      margin: 5px 0;
+    }
+  }
+  
+  .statsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .heroGrid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 } 
